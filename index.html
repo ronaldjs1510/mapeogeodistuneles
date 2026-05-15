@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapeo Geomecánico RMR – Formato de Campo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- ======= TOP BANNER ======= -->
+  <div class="top-banner">
+    <div class="banner-logo">
+      <div class="banner-icon">⛏️</div>
+      <div class="banner-title">
+        <h1>Mapeo Geomecánico RMR</h1>
+        <p>Rock Mass Rating — Mapeo Lineal de Discontinuidades</p>
+      </div>
+    </div>
+    <div class="banner-meta">
+      <div class="meta-chip">
+        <label>Registro N°</label>
+        <input type="text" id="reg-num" value="0001" />
+      </div>
+      <div class="meta-chip">
+        <label>Fecha</label>
+        <input type="date" id="reg-date" />
+      </div>
+      <div class="meta-chip">
+        <label>Hecho por</label>
+        <input type="text" id="reg-autor" placeholder="Nombre del geólogo" />
+      </div>
+      <div class="meta-chip">
+        <label>Ubicación</label>
+        <input type="text" id="reg-ubicacion" placeholder="Zona de estudio" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= NAVIGATION TABS ======= -->
+  <div class="section-nav">
+    <button class="nav-tab active" onclick="switchTab('tab-mapeo', this)">📋 Mapeo RMR</button>
+    <button class="nav-tab" onclick="switchTab('tab-teoria', this)">📖 Fundamentos</button>
+    <button class="nav-tab" onclick="switchTab('tab-equipos', this)">🔧 Equipos & Software</button>
+    <button class="nav-tab" onclick="switchTab('tab-plan', this)">📅 Plan de Trabajo</button>
+  </div>
+
+  <!-- ============================================================ -->
+  <!--  TAB 1 – MAPEO RMR                                          -->
+  <!-- ============================================================ -->
+  <div id="tab-mapeo" class="tab-panel active">
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <button class="btn btn-primary" id="btn-add-row" onclick="addRow()">
+        ＋ Agregar Fila
+      </button>
+      <button class="btn btn-success" id="btn-export" onclick="exportToExcel()">
+        📊 Exportar Excel
+      </button>
+      <button class="btn btn-info" id="btn-print" onclick="window.print()">
+        🖨️ Imprimir
+      </button>
+      <button class="btn btn-secondary" onclick="recalcAll()">
+        🔄 Recalcular RMR
+      </button>
+    </div>
+
+    <!-- Section: Datos Generales -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Datos Generales del Afloramiento</h2>
+        <span class="badge">CAMPO</span>
+      </div>
+      <div class="section-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Proyecto / Obra</label>
+            <input type="text" id="proyecto" placeholder="Nombre del proyecto" />
+          </div>
+          <div class="form-group">
+            <label>Tipo de Roca</label>
+            <select id="tipo-roca">
+              <option value="">— Seleccionar —</option>
+              <option>Granito</option>
+              <option>Basalto</option>
+              <option>Arenisca</option>
+              <option>Caliza</option>
+              <option>Pizarra</option>
+              <option>Esquisto</option>
+              <option>Gneis</option>
+              <option>Cuarcita</option>
+              <option>Andesita</option>
+              <option>Otro</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Coordenada Este (m)</label>
+            <input type="number" id="coord-e" placeholder="ej. 380200" />
+          </div>
+          <div class="form-group">
+            <label>Coordenada Norte (m)</label>
+            <input type="number" id="coord-n" placeholder="ej. 8200400" />
+          </div>
+          <div class="form-group">
+            <label>Altitud (msnm)</label>
+            <input type="number" id="altitud" placeholder="ej. 3850" />
+          </div>
+          <div class="form-group">
+            <label>Sistema de Coordenadas</label>
+            <select id="sistema-coord">
+              <option>WGS84 UTM 19S</option>
+              <option>WGS84 UTM 18S</option>
+              <option>WGS84 UTM 17S</option>
+              <option>PSAD56</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Condición General</label>
+            <select id="condicion">
+              <option value="">— Seleccionar —</option>
+              <option>Afloramiento Natural</option>
+              <option>Talud de Corte</option>
+              <option>Túnel / Galería</option>
+              <option>Cantera</option>
+              <option>Trinchera</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Longitud de Scanline (m)</label>
+            <input type="number" id="scanline" placeholder="ej. 3.0" step="0.1" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Observaciones generales</label>
+          <textarea id="observaciones" placeholder="Descripción macroscópica del macizo rocoso, condiciones del afloramiento, particularidades observadas..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Tabla de Mapeo RMR -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Tabla de Mapeo Lineal – Clasificación RMR (Bieniawski, 1989)</h2>
+        <span class="badge">DISCONTINUIDADES</span>
+      </div>
+      <div class="section-body" style="padding:0;">
+        <div class="table-container">
+          <table class="rmr-table" id="rmr-table">
+            <thead>
+              <tr>
+                <!-- Identif -->
+                <th rowspan="2" style="min-width:50px">N°</th>
+                <!-- Orientación -->
+                <th colspan="2" class="param-header">Orientación</th>
+                <!-- Resistencia -->
+                <th colspan="1" class="param-header">Resist. Compresión</th>
+                <!-- RQD -->
+                <th colspan="1" class="param-header-2">RQD</th>
+                <!-- Espaciamiento -->
+                <th colspan="1" class="param-header-3">Espaciamiento</th>
+                <!-- Condición Discon. -->
+                <th colspan="5" class="param-header-4">Condición de Discontinuidades</th>
+                <!-- Agua -->
+                <th colspan="1" class="param-header">Agua Sub.</th>
+                <!-- RMR -->
+                <th colspan="2" style="background:rgba(232,160,32,0.2);color:var(--accent);border-top:2px solid var(--accent);">RMR</th>
+                <!-- Acción -->
+                <th rowspan="2" style="min-width:40px">Del.</th>
+              </tr>
+              <tr>
+                <th>Buz.<br>(°)</th>
+                <th>Dir. Buz.<br>(°)</th>
+                <th>Puntos<br>(max 15)</th>
+                <th>Puntos<br>(max 20)</th>
+                <th>Puntos<br>(max 20)</th>
+                <th>Persist.<br>(max 6)</th>
+                <th>Apertura<br>(max 6)</th>
+                <th>Rugos.<br>(max 6)</th>
+                <th>Relleno<br>(max 6)</th>
+                <th>Alter.<br>(max 6)</th>
+                <th>Puntos<br>(max 15)</th>
+                <th>Subtotal</th>
+                <th>Clasif.</th>
+              </tr>
+            </thead>
+            <tbody id="rmr-tbody">
+              <!-- Rows injected by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section: Resumen RMR -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Resumen y Clasificación del Macizo Rocoso</h2>
+        <span class="badge">RESULTADOS</span>
+      </div>
+      <div class="section-body">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <span class="s-value" id="sum-total">—</span>
+            <span class="s-label">RMR Promedio</span>
+            <span class="s-sub" id="sum-clase">—</span>
+          </div>
+          <div class="summary-card green">
+            <span class="s-value" id="sum-max">—</span>
+            <span class="s-label">RMR Máximo</span>
+            <span class="s-sub">Mejor calidad medida</span>
+          </div>
+          <div class="summary-card red">
+            <span class="s-value" id="sum-min">—</span>
+            <span class="s-label">RMR Mínimo</span>
+            <span class="s-sub">Peor calidad medida</span>
+          </div>
+          <div class="summary-card blue">
+            <span class="s-value" id="sum-n">0</span>
+            <span class="s-label">N° Mediciones</span>
+            <span class="s-sub">Discontinuidades registradas</span>
+          </div>
+        </div>
+
+        <!-- Clasificación RMR Reference -->
+        <div style="margin-top:20px;">
+          <table class="classif-table">
+            <thead>
+              <tr>
+                <th>Clase</th>
+                <th>Descripción</th>
+                <th>Rango RMR</th>
+                <th>Calidad</th>
+                <th>Cohesión (kPa)</th>
+                <th>Ángulo fricción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(46,204,113,0.2);color:#2ecc71;">I</span></td>
+                <td>Roca Muy Buena</td>
+                <td>100 – 81</td>
+                <td>Muy buena</td>
+                <td>&gt; 400</td>
+                <td>&gt; 45°</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(52,152,219,0.2);color:#3498db;">II</span></td>
+                <td>Roca Buena</td>
+                <td>80 – 61</td>
+                <td>Buena</td>
+                <td>300 – 400</td>
+                <td>35° – 45°</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(241,196,15,0.2);color:#f1c40f;">III</span></td>
+                <td>Roca Regular</td>
+                <td>60 – 41</td>
+                <td>Regular</td>
+                <td>200 – 300</td>
+                <td>25° – 35°</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(230,126,34,0.2);color:#e67e22;">IV</span></td>
+                <td>Roca Mala</td>
+                <td>40 – 21</td>
+                <td>Mala</td>
+                <td>100 – 200</td>
+                <td>15° – 25°</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(231,76,60,0.2);color:#e74c3c;">V</span></td>
+                <td>Roca Muy Mala</td>
+                <td>≤ 20</td>
+                <td>Muy mala</td>
+                <td>&lt; 100</td>
+                <td>&lt; 15°</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-mapeo -->
+
+
+  <!-- ============================================================ -->
+  <!--  TAB 2 – FUNDAMENTOS TEÓRICOS                               -->
+  <!-- ============================================================ -->
+  <div id="tab-teoria" class="tab-panel">
+
+    <div class="info-box" style="margin-bottom:20px;">
+      <strong>Base teórica:</strong> El sistema RMR (<em>Rock Mass Rating</em>) fue desarrollado por <strong>Bieniawski (1973, 1989)</strong>
+      como herramienta de clasificación geomecánica cuantitativa para caracterizar macizos rocosos en proyectos de
+      ingeniería subterránea, taludes y cimentaciones.
+    </div>
+
+    <div class="theory-grid">
+
+      <div class="theory-block">
+        <h3>1. ¿Qué es el RMR?</h3>
+        <div class="tb-body">
+          <p>El <span class="highlight">Rock Mass Rating (RMR)</span> es un sistema de clasificación geomecánica que
+          asigna una puntuación entre 0 y 100 al macizo rocoso en función de seis parámetros fundamentales.</p>
+          <p>Permite correlacionar propiedades resistentes, diseñar sostenimiento en túneles y evaluar la estabilidad
+          de taludes. Es ampliamente utilizado en minería, obras civiles y geotecnia.</p>
+          <p>La versión de <span class="highlight">Bieniawski (1989)</span> es el estándar actualmente más utilizado
+          y es la base de este formato de mapeo.</p>
+        </div>
+      </div>
+
+      <div class="theory-block">
+        <h3>2. Parámetros del Sistema RMR</h3>
+        <div class="tb-body">
+          <ul>
+            <li><span class="highlight">A1 – Resistencia a compresión uniaxial:</span> Estimada con martillo de Schmidt o en laboratorio. Puntaje: 0–15.</li>
+            <li><span class="highlight">A2 – RQD (Rock Quality Designation):</span> Porcentaje de testigos ≥10 cm sobre longitud total. Puntaje: 3–20.</li>
+            <li><span class="highlight">A3 – Espaciamiento entre discontinuidades:</span> Distancia media entre fracturas. Puntaje: 5–20.</li>
+            <li><span class="highlight">A4 – Condición de discontinuidades:</span> Persistencia, apertura, rugosidad, relleno y alteración de paredes. Puntaje: 0–30.</li>
+            <li><span class="highlight">A5 – Agua subterránea:</span> Caudal de flujo o condición general. Puntaje: 0–15.</li>
+            <li><span class="highlight">B – Corrección por orientación:</span> Factor de ajuste (-12 a 0) según orientación de discontinuidades respecto a la obra.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="theory-block">
+        <h3>3. RQD – Rock Quality Designation</h3>
+        <div class="tb-body">
+          <p>El RQD fue propuesto por <span class="highlight">Deere (1963)</span> como indicador de la calidad del
+          macizo a partir de testigos de sondaje o medidas lineales en afloramiento.</p>
+          <p><strong>Fórmula:</strong> RQD (%) = Σ longitudes de trozos ≥ 10 cm / Longitud total del sondaje × 100</p>
+          <p>En afloramiento (scanline), se considera la proyección de las distancias entre fracturas sobre la
+          línea de muestreo. Solo se suman los intervalos ≥ 10 cm entre fracturas.</p>
+          <ul>
+            <li>RQD 90–100% → <span class="highlight">Excelente</span></li>
+            <li>RQD 75–90%  → Buena</li>
+            <li>RQD 50–75%  → Regular</li>
+            <li>RQD 25–50%  → Mala</li>
+            <li>RQD &lt;25%  → Muy mala</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="theory-block">
+        <h3>4. Condición de Discontinuidades</h3>
+        <div class="tb-body">
+          <ul>
+            <li><span class="highlight">Persistencia:</span> Extensión lateral de la fractura. Mayor persistencia implica menor resistencia al corte.</li>
+            <li><span class="highlight">Apertura:</span> Separación entre paredes. Aperturas &gt;5 mm indican roca muy fracturada.</li>
+            <li><span class="highlight">Rugosidad:</span> Textura superficial. Superficies rugosas ofrecen mayor ángulo de fricción.</li>
+            <li><span class="highlight">Relleno:</span> Material presente en la fractura. Rellenos blandos (arcilla) reducen drásticamente la resistencia.</li>
+            <li><span class="highlight">Alteración:</span> Grado de meteorización de las paredes. La alteración química degrada la roca intacta.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="theory-block">
+        <h3>5. Mapeo Lineal (Scanline)</h3>
+        <div class="tb-body">
+          <p>El <span class="highlight">mapeo lineal o scanline</span> es la técnica de campo para el levantamiento
+          sistemático de discontinuidades. Consiste en extender una cinta métrica (generalmente 3–10 m) sobre el
+          afloramiento y registrar cada fractura que intercepte dicha línea.</p>
+          <p>Para cada discontinuidad se registra: tipo, orientación (buzamiento y dirección de buzamiento),
+          espaciamiento, persistencia, apertura, rugosidad, relleno, alteración y presencia de agua.</p>
+          <p>La dirección de la scanline debe elegirse de forma que maximice la intersección con las familias de
+          fracturas dominantes (idealmente perpendicular al rumbo de las fracturas principales).</p>
+        </div>
+      </div>
+
+      <div class="theory-block">
+        <h3>6. Aplicaciones del RMR</h3>
+        <div class="tb-body">
+          <ul>
+            <li>Diseño de sostenimiento en túneles y cavernas subterráneas</li>
+            <li>Estimación de parámetros resistentes del macizo (criterio Hoek-Brown)</li>
+            <li>Clasificación de taludes naturales y artificiales</li>
+            <li>Correlación con el sistema Q de Barton (Q = e^{(RMR-44)/9})</li>
+            <li>Evaluación de excavabilidad y rendimiento de TBM</li>
+            <li>Zonificación geomecánica de proyectos mineros y civiles</li>
+            <li>Estimación del módulo de deformación del macizo rocoso</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div><!-- /tab-teoria -->
+
+
+  <!-- ============================================================ -->
+  <!--  TAB 3 – EQUIPOS & SOFTWARE                                 -->
+  <!-- ============================================================ -->
+  <div id="tab-equipos" class="tab-panel">
+
+    <!-- Equipos -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Equipos de Campo</h2>
+        <span class="badge">INSTRUMENTAL</span>
+      </div>
+      <div class="section-body">
+        <div class="equip-grid">
+
+          <div class="equip-card">
+            <div class="ec-icon">🧭</div>
+            <div class="ec-name">Brújula Geológica (Brunton / Freiberg)</div>
+            <div class="ec-desc">Medición de orientación de discontinuidades: buzamiento y dirección de buzamiento. Precisión ±1°. Modelos recomendados: Brunton 5006, Freiberger.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">🔨</div>
+            <div class="ec-name">Martillo de Schmidt (Esclerómetro)</div>
+            <div class="ec-desc">Estimación de resistencia a la compresión uniaxial de la roca intacta mediante rebote. Tipo N o L según dureza esperada. Requiere 10 lecturas por punto.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">📏</div>
+            <div class="ec-name">Cinta Métrica (5–10 m)</div>
+            <div class="ec-desc">Extensión de la scanline sobre el afloramiento. Graduación mínima en cm para medición de espaciamientos y longitud de testigos equivalentes.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">🔬</div>
+            <div class="ec-name">Lupa de Campo (10x)</div>
+            <div class="ec-desc">Identificación de minerales, textura de la roca, tipo de relleno en fracturas y grado de alteración de las paredes de las discontinuidades.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">📐</div>
+            <div class="ec-name">Clavos Topográficos / Hitos</div>
+            <div class="ec-desc">Marcado de los extremos de la scanline sobre el afloramiento para referenciación espacial y reproducibilidad del muestreo.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">📷</div>
+            <div class="ec-name">Cámara Fotográfica / Smartphone</div>
+            <div class="ec-desc">Registro fotográfico sistemático del afloramiento, discontinuidades representativas y condiciones generales. Escala gráfica obligatoria en fotos.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">📡</div>
+            <div class="ec-name">GPS de Navegación</div>
+            <div class="ec-desc">Registro de coordenadas UTM de cada punto de mapeo. Precisión mínima ±3 m. Se recomienda GPS diferencial (GNSS) para mayor exactitud.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">🧪</div>
+            <div class="ec-name">Ácido Clorhídrico (HCl 10%)</div>
+            <div class="ec-desc">Identificación de carbonatos en roca y relleno de fracturas. Una gota sobre la superficie: efervescencia indica presencia de calcita.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">📒</div>
+            <div class="ec-name">Libreta de Campo Impermeable</div>
+            <div class="ec-desc">Registro in situ de datos, croquis de afloramientos, notas de observaciones. Papel resistente al agua. Lápiz 2H recomendado.</div>
+          </div>
+
+          <div class="equip-card">
+            <div class="ec-icon">🔦</div>
+            <div class="ec-name">Linterna Frontal (para galerías)</div>
+            <div class="ec-desc">Indispensable en trabajo subterráneo. Autonomía mínima 8 horas. Llevar baterías de repuesto. Ideal: iluminación ≥300 lúmenes.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Software -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Software Especializado</h2>
+        <span class="badge">PROCESAMIENTO</span>
+      </div>
+      <div class="section-body">
+        <div class="sw-grid">
+
+          <div class="sw-card">
+            <div class="sw-name">DIPS</div>
+            <div class="sw-full">Rocscience – Dips v9.0</div>
+            <div class="sw-desc">
+              Software líder para análisis estereográfico de discontinuidades en macizos rocosos. Permite graficar
+              polos y planos en proyección estereográfica (Schmidt / Wulff), identificar familias de fracturas,
+              calcular planos medios y realizar análisis cinemáticos de estabilidad de taludes
+              (planar, cuña, vuelco).
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag">Estereogramas</span>
+              <span class="sw-tag">Análisis cinemático</span>
+              <span class="sw-tag">Familias de fracturas</span>
+              <span class="sw-tag">Roseta</span>
+            </div>
+          </div>
+
+          <div class="sw-card">
+            <div class="sw-name">Slide2</div>
+            <div class="sw-full">Rocscience – Slide2 / Slide3</div>
+            <div class="sw-desc">
+              Análisis de estabilidad de taludes 2D y 3D. Permite modelar superficies de falla circulares y
+              no circulares usando los parámetros resistentes obtenidos de la clasificación RMR
+              (criterio Hoek-Brown generalizado).
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag">Estabilidad de taludes</span>
+              <span class="sw-tag">Factor de seguridad</span>
+              <span class="sw-tag">Hoek-Brown</span>
+            </div>
+          </div>
+
+          <div class="sw-card">
+            <div class="sw-name">RocData</div>
+            <div class="sw-full">Rocscience – RocData v6</div>
+            <div class="sw-desc">
+              Análisis del criterio de falla de Hoek-Brown para macizos rocosos. A partir del GSI, UCS y m_i
+              (obtenibles del RMR) genera los parámetros equivalentes de Mohr-Coulomb y curvas de
+              envolvente de falla.
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag">Criterio Hoek-Brown</span>
+              <span class="sw-tag">GSI</span>
+              <span class="sw-tag">Mohr-Coulomb</span>
+            </div>
+          </div>
+
+          <div class="sw-card">
+            <div class="sw-name">Phase2 / RS2</div>
+            <div class="sw-full">Rocscience – RS2 / RS3</div>
+            <div class="sw-desc">
+              Análisis por elementos finitos para excavaciones subterráneas y taludes. Modela el
+              comportamiento esfuerzo-deformación del macizo rocoso usando los parámetros del RMR
+              para definir los módulos y criterios de rotura.
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag">Elementos finitos</span>
+              <span class="sw-tag">Túneles</span>
+              <span class="sw-tag">Esfuerzos</span>
+            </div>
+          </div>
+
+          <div class="sw-card">
+            <div class="sw-name">AutoCAD</div>
+            <div class="sw-full">Autodesk AutoCAD / Civil 3D</div>
+            <div class="sw-desc">
+              Elaboración de planos geológicos, perfiles, mapas de zonificación geomecánica y
+              cartografía de afloramientos. Plataforma estándar para documentación técnica de proyectos.
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag">Cartografía</span>
+              <span class="sw-tag">Perfiles</span>
+              <span class="sw-tag">Zonificación</span>
+            </div>
+          </div>
+
+          <div class="sw-card">
+            <div class="sw-name">Excel / Python</div>
+            <div class="sw-full">Microsoft Excel + Python (pandas)</div>
+            <div class="sw-desc">
+              Procesamiento estadístico de datos de campo, cálculo de RMR, generación de gráficos de
+              frecuencia de fracturas, análisis de distribución espacial y elaboración de bases de datos
+              geomecánicas.
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag">Estadística</span>
+              <span class="sw-tag">Bases de datos</span>
+              <span class="sw-tag">Gráficos</span>
+            </div>
+          </div>
+
+          <div class="sw-card" style="border-top-color:#e74c3c;">
+            <div class="sw-name" style="color:#e74c3c;">DIPS — Flujo de trabajo</div>
+            <div class="sw-full">Pasos clave en Dips para este mapeo</div>
+            <div class="sw-desc">
+              <strong>1.</strong> Ingresar datos de orientación (buzamiento / dirección de buzamiento) exportados desde este formato.<br/>
+              <strong>2.</strong> Generar diagrama de contornos de densidad de polos (Fisher/Schmidt).<br/>
+              <strong>3.</strong> Identificar familias de discontinuidades con el análisis automático de agrupamiento.<br/>
+              <strong>4.</strong> Calcular planos medios por familia.<br/>
+              <strong>5.</strong> Realizar análisis cinemático para taludes (planar, cuña, toppling).<br/>
+              <strong>6.</strong> Exportar resultados para informe.
+            </div>
+            <div class="sw-tags">
+              <span class="sw-tag" style="color:#e74c3c;border-color:rgba(231,76,60,0.4);">Flujo Principal</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-equipos -->
+
+
+  <!-- ============================================================ -->
+  <!--  TAB 4 – PLAN DE TRABAJO                                    -->
+  <!-- ============================================================ -->
+  <div id="tab-plan" class="tab-panel">
+
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Plan de Trabajo – Mapeo Geomecánico RMR</h2>
+        <span class="badge">METODOLOGÍA</span>
+      </div>
+      <div class="section-body">
+
+        <div class="info-box">
+          <strong>Objetivo general:</strong> Caracterizar geomecánicamente el macizo rocoso mediante el sistema RMR
+          (Bieniawski, 1989) utilizando el método de mapeo lineal (scanline), para determinar la calidad del macizo
+          y obtener parámetros de resistencia que sirvan de base para el diseño geotécnico.
+        </div>
+
+        <div class="plan-timeline">
+
+          <div class="plan-item">
+            <div class="pi-head">
+              <span class="pi-day">Semana 1 — Días 1–2</span>
+              <span class="pi-title">Planificación y Preparación</span>
+            </div>
+            <div class="pi-body">
+              <ul>
+                <li>Recopilación y revisión de información geológica existente: mapas, informes previos, fotografías aéreas y satelitales.</li>
+                <li>Definición de la zona de estudio y diseño del programa de mapeo: densidad de puntos, longitud de scanlines, familias esperadas.</li>
+                <li>Elaboración de formatos de campo (este documento) y plantillas digitales.</li>
+                <li>Calibración de equipos: martillo Schmidt, brújula, GPS. Verificar funcionamiento del esclerómetro con el ábaco de Miller.</li>
+                <li>Gestión de permisos de acceso a la zona de estudio y análisis de seguridad (IPERC).</li>
+                <li>Coordinación logística: transporte, EPP completo, comunicaciones en campo.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-head">
+              <span class="pi-day">Semana 1–2 — Días 3–7</span>
+              <span class="pi-title">Reconocimiento de Campo Preliminar</span>
+            </div>
+            <div class="pi-body">
+              <ul>
+                <li>Recorrido general del área de estudio para identificar afloramientos representativos.</li>
+                <li>Mapeo geológico de superficie: litología, estructuras mayores (fallas, pliegues), alteraciones zonales.</li>
+                <li>Selección definitiva de puntos de scanline, registrando coordenadas GPS de cada inicio y fin.</li>
+                <li>Fotografía panorámica de cada afloramiento con escala gráfica y norte referenciado.</li>
+                <li>Estimación preliminar del RQD in situ para ajustar la densidad del muestreo.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-head">
+              <span class="pi-day">Semana 2–3 — Días 8–15</span>
+              <span class="pi-title">Mapeo Geomecánico Detallado (Trabajo de Campo)</span>
+            </div>
+            <div class="pi-body">
+              <ul>
+                <li>Extensión de scanlines en cada punto seleccionado (mínimo 3 m por punto, dirección perpendicular a fracturas principales).</li>
+                <li>Registro de cada discontinuidad interceptada: N° de fractura, buzamiento, dirección de buzamiento, tipo, persistencia, apertura, rugosidad, relleno, alteración.</li>
+                <li>Medición de 10 impactos con martillo Schmidt por punto para estimación de resistencia a compresión.</li>
+                <li>Evaluación de condiciones de agua subterránea (seco, húmedo, mojado, goteo, flujo).</li>
+                <li>Cálculo de RQD in situ por punto de medición (scanline horizontal y vertical/inclinado).</li>
+                <li>Registro fotográfico detallado de cada discontinuidad representativa y de las condiciones generales.</li>
+                <li>Control de calidad en campo: revisión cruzada de datos por segundo geólogo cuando sea posible.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-head">
+              <span class="pi-day">Semana 3 — Días 16–18</span>
+              <span class="pi-title">Ensayos de Laboratorio Complementarios</span>
+            </div>
+            <div class="pi-body">
+              <ul>
+                <li>Toma de muestras de roca intacta para ensayos de compresión uniaxial (UCS) y tracción (ensayo brasileño).</li>
+                <li>Ensayo de dureza Shore o esclerometría complementaria en laboratorio.</li>
+                <li>Descripción petrográfica de láminas delgadas si se requiere identificación mineralógica precisa.</li>
+                <li>Análisis granulométrico de rellenos de fracturas (tamizado + hidrómetro).</li>
+                <li>Límites de Atterberg en rellenos arcillosos para clasificación del material de relleno.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-head">
+              <span class="pi-day">Semana 4 — Días 19–22</span>
+              <span class="pi-title">Procesamiento y Análisis de Datos</span>
+            </div>
+            <div class="pi-body">
+              <ul>
+                <li>Digitalización de todos los datos de campo en base de datos Excel / este formato HTML.</li>
+                <li>Cálculo del RMR por punto: suma de los 6 parámetros y aplicación de corrección por orientación.</li>
+                <li>Estadística descriptiva: RMR promedio, desviación estándar, moda, percentiles P10/P50/P90.</li>
+                <li>Análisis estereográfico en DIPS: graficar polos, identificar familias de discontinuidades, calcular planos medios.</li>
+                <li>Análisis cinemático en DIPS para evaluación de mecanismos de rotura en taludes (planar, cuña, vuelco).</li>
+                <li>Estimación de parámetros Hoek-Brown con RocData a partir del RMR y GSI equivalente.</li>
+                <li>Elaboración de planos de zonificación geomecánica en AutoCAD.</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="plan-item">
+            <div class="pi-head">
+              <span class="pi-day">Semana 4–5 — Días 23–28</span>
+              <span class="pi-title">Elaboración del Informe Final</span>
+            </div>
+            <div class="pi-body">
+              <ul>
+                <li>Redacción del informe geomecánico: introducción, geología regional y local, metodología, resultados del RMR por zona, clasificación del macizo, análisis estructural.</li>
+                <li>Elaboración de tablas resumen de parámetros geomecánicos por unidad.</li>
+                <li>Generación de figuras: estereogramas (DIPS), mapas de zonificación, perfiles geológicos anotados.</li>
+                <li>Recomendaciones de sostenimiento según Bieniawski (1989) para excavaciones proyectadas.</li>
+                <li>Revisión interna del informe y correcciones.</li>
+                <li>Entrega del informe final con anexos: formatos de campo originales, base de datos, planos y certificados de laboratorio.</li>
+              </ul>
+            </div>
+          </div>
+
+        </div><!-- /plan-timeline -->
+
+        <!-- Cronograma resumen -->
+        <div style="margin-top: 24px;">
+          <div class="section-header" style="border-radius:var(--radius) var(--radius) 0 0;">
+            <h2>Resumen de Cronograma</h2>
+            <span class="badge">5 SEMANAS</span>
+          </div>
+          <table class="classif-table" style="border-radius:0 0 var(--radius) var(--radius);overflow:hidden;">
+            <thead>
+              <tr>
+                <th>Etapa</th>
+                <th>Actividad</th>
+                <th>Duración</th>
+                <th>Responsable</th>
+                <th>Entregable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(52,152,219,0.15);color:#3498db;">1</span></td>
+                <td>Planificación y preparación</td>
+                <td>2 días</td>
+                <td>Geólogo responsable</td>
+                <td>Plan de trabajo, formatos</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(52,152,219,0.15);color:#3498db;">2</span></td>
+                <td>Reconocimiento preliminar</td>
+                <td>5 días</td>
+                <td>Equipo de campo</td>
+                <td>Mapa geológico preliminar</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(232,160,32,0.15);color:var(--accent);">3</span></td>
+                <td>Mapeo geomecánico detallado</td>
+                <td>8 días</td>
+                <td>Geólogo + asistente</td>
+                <td>Formatos de campo completos</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(232,160,32,0.15);color:var(--accent);">4</span></td>
+                <td>Ensayos de laboratorio</td>
+                <td>3 días</td>
+                <td>Laboratorio geotécnico</td>
+                <td>Certificados de ensayo</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(46,204,113,0.15);color:#2ecc71;">5</span></td>
+                <td>Procesamiento y análisis</td>
+                <td>4 días</td>
+                <td>Geólogo + especialista SIG</td>
+                <td>Base de datos, estereogramas</td>
+              </tr>
+              <tr>
+                <td><span class="cls-badge" style="background:rgba(46,204,113,0.15);color:#2ecc71;">6</span></td>
+                <td>Informe final</td>
+                <td>6 días</td>
+                <td>Equipo técnico</td>
+                <td>Informe geomecánico final</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /tab-plan -->
+
+</div><!-- /page-wrapper -->
+
+<!-- Toast notification -->
+<div class="toast" id="toast">
+  <span class="t-icon">✅</span>
+  <span id="toast-msg">Operación completada</span>
+</div>
+
+<!-- SheetJS for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script>
+// =========================================================
+//  DATA & STATE
+// =========================================================
+let rowCounter = 600;
+
+// RMR scoring options
+const SCORES = {
+  ucs:   [15, 12, 7, 4, 2],
+  rqd:   [20, 17, 13, 8, 3],
+  espa:  [20, 15, 10, 8, 5],
+  persi: [6, 4, 2, 1, 0],
+  aper:  [6, 5, 4, 1, 0],
+  rugos: [6, 5, 3, 1, 0],
+  relleno:[6, 4, 2, 1, 0],
+  alter: [6, 5, 3, 1, 0],
+  agua:  [15, 10, 7, 4, 0],
+};
+
+const UCS_OPTS   = ['&gt;250 MPa (15)','100–250 MPa (12)','50–100 MPa (7)','25–50 MPa (4)','&lt;25 MPa (2)'];
+const RQD_OPTS   = ['90–100% (20)','75–90% (17)','50–75% (13)','25–50% (8)','&lt;25% (3)'];
+const ESPA_OPTS  = ['&gt;2 m (20)','0.6–2 m (15)','200–600 mm (10)','60–200 mm (8)','&lt;60 mm (5)'];
+const PERSI_OPTS = ['&lt;1 m (6)','1–3 m (4)','3–10 m (2)','10–20 m (1)','>20 m (0)'];
+const APER_OPTS  = ['Cerrada 0 mm (6)','Muy angosta &lt;0.1mm (5)','Angosta 0.1–1mm (4)','Abierta 1–5mm (1)','Muy abierta &gt;5mm (0)'];
+const RUGOS_OPTS = ['Muy rugoso (6)','Rugoso (5)','Lig. rugoso (3)','Lisa (1)','Muy lisa (0)'];
+const RELLENO_OPTS=['Ninguna (6)','Relleno duro &lt;5mm (4)','Relleno duro &gt;5mm (2)','Relleno blando &lt;5mm (1)','Relleno blando &gt;5mm (0)'];
+const ALTER_OPTS = ['No meteorizada (6)','Ligeramente (5)','Moderadamente (3)','Altamente (1)','Descompuesta (0)'];
+const AGUA_OPTS  = ['Completamente seco (15)','Húmedo (10)','Mojado (7)','Goteo (4)','Flujo (0)'];
+
+function makeSelect(id, opts, scores, rowId) {
+  let html = `<select id="${id}" onchange="calcRow(${rowId})">`;
+  html += '<option value="">—</option>';
+  opts.forEach((o, i) => {
+    html += `<option value="${scores[i]}">${o}</option>`;
+  });
+  html += '</select>';
+  return html;
+}
+
+// =========================================================
+//  ROW MANAGEMENT
+// =========================================================
+function addRow() {
+  rowCounter++;
+  const tbody = document.getElementById('rmr-tbody');
+  const tr = document.createElement('tr');
+  tr.id = `row-${rowCounter}`;
+  tr.innerHTML = `
+    <td>${rowCounter}</td>
+    <td><input type="number" id="buz-${rowCounter}" min="0" max="90" placeholder="°" onchange="calcRow(${rowCounter})" /></td>
+    <td><input type="number" id="dir-${rowCounter}" min="0" max="360" placeholder="°" onchange="calcRow(${rowCounter})" /></td>
+    <td>${makeSelect('ucs-'+rowCounter, UCS_OPTS, SCORES.ucs, rowCounter)}</td>
+    <td>${makeSelect('rqd-'+rowCounter, RQD_OPTS, SCORES.rqd, rowCounter)}</td>
+    <td>${makeSelect('espa-'+rowCounter, ESPA_OPTS, SCORES.espa, rowCounter)}</td>
+    <td>${makeSelect('persi-'+rowCounter, PERSI_OPTS, SCORES.persi, rowCounter)}</td>
+    <td>${makeSelect('aper-'+rowCounter, APER_OPTS, SCORES.aper, rowCounter)}</td>
+    <td>${makeSelect('rugos-'+rowCounter, RUGOS_OPTS, SCORES.rugos, rowCounter)}</td>
+    <td>${makeSelect('relleno-'+rowCounter, RELLENO_OPTS, SCORES.relleno, rowCounter)}</td>
+    <td>${makeSelect('alter-'+rowCounter, ALTER_OPTS, SCORES.alter, rowCounter)}</td>
+    <td>${makeSelect('agua-'+rowCounter, AGUA_OPTS, SCORES.agua, rowCounter)}</td>
+    <td class="rmr-score" id="score-${rowCounter}">—</td>
+    <td id="clase-${rowCounter}" style="font-size:11px;color:var(--text-muted);">—</td>
+    <td><button class="btn-del-row" onclick="delRow(${rowCounter})" title="Eliminar fila">✕</button></td>
+  `;
+  tbody.appendChild(tr);
+  updateSummary();
+}
+
+function delRow(id) {
+  const row = document.getElementById(`row-${id}`);
+  if (row) row.remove();
+  updateSummary();
+}
+
+// =========================================================
+//  RMR CALCULATION
+// =========================================================
+function getVal(id) {
+  const el = document.getElementById(id);
+  if (!el) return null;
+  const v = parseFloat(el.value);
+  return isNaN(v) ? null : v;
+}
+
+function calcRow(id) {
+  const params = ['ucs','rqd','espa','persi','aper','rugos','relleno','alter','agua'];
+  let total = 0;
+  let allFilled = true;
+  params.forEach(p => {
+    const v = getVal(`${p}-${id}`);
+    if (v === null) { allFilled = false; }
+    else { total += v; }
+  });
+
+  const scoreEl = document.getElementById(`score-${id}`);
+  const claseEl = document.getElementById(`clase-${id}`);
+
+  if (scoreEl) {
+    scoreEl.textContent = total;
+    const {cls, color} = getRMRClass(total);
+    claseEl.innerHTML = `<span style="color:${color};font-weight:700;">${cls}</span>`;
+  }
+  updateSummary();
+}
+
+function getRMRClass(v) {
+  if (v > 80) return {cls:'I – Muy buena', color:'#2ecc71'};
+  if (v > 60) return {cls:'II – Buena', color:'#3498db'};
+  if (v > 40) return {cls:'III – Regular', color:'#f1c40f'};
+  if (v > 20) return {cls:'IV – Mala', color:'#e67e22'};
+  return {cls:'V – Muy mala', color:'#e74c3c'};
+}
+
+function recalcAll() {
+  const tbody = document.getElementById('rmr-tbody');
+  const rows = tbody.querySelectorAll('tr');
+  rows.forEach(tr => {
+    const id = tr.id.replace('row-','');
+    calcRow(parseInt(id));
+  });
+  showToast('RMR recalculado en todas las filas.');
+}
+
+function updateSummary() {
+  const tbody = document.getElementById('rmr-tbody');
+  const rows = tbody.querySelectorAll('tr');
+  const scores = [];
+  rows.forEach(tr => {
+    const id = tr.id.replace('row-','');
+    const el = document.getElementById(`score-${id}`);
+    if (el) {
+      const v = parseFloat(el.textContent);
+      if (!isNaN(v)) scores.push(v);
+    }
+  });
+
+  document.getElementById('sum-n').textContent = rows.length;
+
+  if (scores.length === 0) {
+    document.getElementById('sum-total').textContent = '—';
+    document.getElementById('sum-clase').textContent = '—';
+    document.getElementById('sum-max').textContent = '—';
+    document.getElementById('sum-min').textContent = '—';
+    return;
+  }
+
+  const avg = (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1);
+  const max = Math.max(...scores);
+  const min = Math.min(...scores);
+  const {cls, color} = getRMRClass(parseFloat(avg));
+
+  document.getElementById('sum-total').textContent = avg;
+  document.getElementById('sum-clase').innerHTML = `<span style="color:${color}">${cls}</span>`;
+  document.getElementById('sum-max').textContent = max;
+  document.getElementById('sum-min').textContent = min;
+}
+
+// =========================================================
+//  TAB SWITCHING
+// =========================================================
+function switchTab(panelId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+  btn.classList.add('active');
+}
+
+// =========================================================
+//  EXCEL EXPORT
+// =========================================================
+function exportToExcel() {
+  const wb = XLSX.utils.book_new();
+
+  // --- Sheet 1: General info ---
+  const infoData = [
+    ['MAPEO GEOMECÁNICO RMR — DATOS GENERALES'],
+    [],
+    ['Registro N°', document.getElementById('reg-num').value],
+    ['Fecha', document.getElementById('reg-date').value],
+    ['Hecho por', document.getElementById('reg-autor').value],
+    ['Ubicación', document.getElementById('reg-ubicacion').value],
+    ['Proyecto', document.getElementById('proyecto').value],
+    ['Tipo de Roca', document.getElementById('tipo-roca').value],
+    ['Coordenada Este', document.getElementById('coord-e').value],
+    ['Coordenada Norte', document.getElementById('coord-n').value],
+    ['Altitud (msnm)', document.getElementById('altitud').value],
+    ['Sistema Coord.', document.getElementById('sistema-coord').value],
+    ['Condición', document.getElementById('condicion').value],
+    ['Longitud Scanline', document.getElementById('scanline').value],
+    ['Observaciones', document.getElementById('observaciones').value],
+  ];
+  const wsInfo = XLSX.utils.aoa_to_sheet(infoData);
+  XLSX.utils.book_append_sheet(wb, wsInfo, 'Datos_Generales');
+
+  // --- Sheet 2: RMR Table ---
+  const headers = [
+    'N°','Buzamiento (°)','Dir. Buzamiento (°)',
+    'UCS (pts)','RQD (pts)','Espaciamiento (pts)',
+    'Persistencia (pts)','Apertura (pts)','Rugosidad (pts)',
+    'Relleno (pts)','Alteración (pts)','Agua Subt. (pts)',
+    'RMR Total','Clasificación'
+  ];
+
+  const tbody = document.getElementById('rmr-tbody');
+  const rows = tbody.querySelectorAll('tr');
+  const tableData = [headers];
+
+  rows.forEach(tr => {
+    const id = tr.id.replace('row-','');
+    const params = ['ucs','rqd','espa','persi','aper','rugos','relleno','alter','agua'];
+    const row = [
+      id,
+      getVal(`buz-${id}`) ?? '',
+      getVal(`dir-${id}`) ?? '',
+    ];
+    params.forEach(p => {
+      row.push(getVal(`${p}-${id}`) ?? '');
+    });
+    const scoreEl = document.getElementById(`score-${id}`);
+    const claseEl = document.getElementById(`clase-${id}`);
+    row.push(scoreEl ? scoreEl.textContent : '');
+    row.push(claseEl ? claseEl.textContent.trim() : '');
+    tableData.push(row);
+  });
+
+  // Summary row
+  tableData.push([]);
+  const avg = document.getElementById('sum-total').textContent;
+  const cls = document.getElementById('sum-clase').textContent;
+  tableData.push(['RESUMEN','','','','','','','','','','','','RMR Promedio',avg]);
+  tableData.push(['','','','','','','','','','','','','Clasificación',cls]);
+
+  const wsMapa = XLSX.utils.aoa_to_sheet(tableData);
+  // Column widths
+  wsMapa['!cols'] = headers.map((h,i) => ({wch: i === 0 ? 6 : i === 13 ? 24 : 16}));
+  XLSX.utils.book_append_sheet(wb, wsMapa, 'Mapeo_RMR');
+
+  const fecha = new Date().toISOString().slice(0,10);
+  const reg = document.getElementById('reg-num').value || '0001';
+  XLSX.writeFile(wb, `Mapeo_Geomecanico_RMR_${reg}_${fecha}.xlsx`);
+  showToast('Archivo Excel exportado correctamente.');
+}
+
+// =========================================================
+//  TOAST
+// =========================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// =========================================================
+//  INIT
+// =========================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  document.getElementById('reg-date').value = new Date().toISOString().slice(0,10);
+
+  // Pre-populate with sample data from original Excel
+  const sampleData = [
+    {buz:80, dir:245, ucs:12, rqd:20, espa:20, persi:6, aper:0, rugos:1, relleno:6, alter:5, agua:10},
+    {buz:90, dir:239, ucs:4,  rqd:20, espa:15, persi:4, aper:0, rugos:1, relleno:4, alter:3, agua:10},
+    {buz:75, dir:291, ucs:7,  rqd:20, espa:15, persi:4, aper:0, rugos:1, relleno:4, alter:5, agua:10},
+    {buz:90, dir:200, ucs:7,  rqd:20, espa:10, persi:6, aper:0, rugos:1, relleno:4, alter:3, agua:10},
+    {buz:90, dir:341, ucs:12, rqd:20, espa:10, persi:6, aper:0, rugos:1, relleno:2, alter:6, agua:10},
+  ];
+
+  sampleData.forEach(d => {
+    addRow();
+    const id = rowCounter;
+    // fill values
+    const bEl = document.getElementById(`buz-${id}`);
+    const dEl = document.getElementById(`dir-${id}`);
+    if (bEl) bEl.value = d.buz;
+    if (dEl) dEl.value = d.dir;
+
+    const paramMap = {ucs:'ucs',rqd:'rqd',espa:'espa',persi:'persi',aper:'aper',rugos:'rugos',relleno:'relleno',alter:'alter',agua:'agua'};
+    Object.keys(paramMap).forEach(key => {
+      const sel = document.getElementById(`${key}-${id}`);
+      if (sel) {
+        const target = d[key];
+        Array.from(sel.options).forEach(opt => {
+          if (parseFloat(opt.value) === target) sel.value = opt.value;
+        });
+      }
+    });
+    calcRow(id);
+  });
+});
+</script>
+</body>
+</html>
